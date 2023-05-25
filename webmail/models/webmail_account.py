@@ -2,12 +2,14 @@
 # @author: Sylvain LE GAL (https://twitter.com/legalsylvain)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-import socket
-import imapclient
 import imaplib
+import socket
+
+import imapclient
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
 
 class WebmailAccount(models.Model):
     _name = "webmail.account"
@@ -19,10 +21,7 @@ class WebmailAccount(models.Model):
 
     login = fields.Char(required=True)
 
-    user_id = fields.Many2one(
-        comodel_name="res.users",
-        required=True
-    )
+    user_id = fields.Many2one(comodel_name="res.users", required=True)
 
     password = fields.Char(required=True)
 
@@ -49,18 +48,24 @@ class WebmailAccount(models.Model):
         try:
             client = imapclient.IMAPClient(host=self.host_id.url)
         except socket.gaierror as e:
-            raise UserError(_(
-                "server '%s' has not been reached. Possible Reasons: \n"
-                "- the server doesn't exist"
-                "- your odoo instance faces to network issue"
-            ) % (self.host_id.url))
+            raise UserError(
+                _(
+                    "server '%s' has not been reached. Possible Reasons: \n"
+                    "- the server doesn't exist"
+                    "- your odoo instance faces to network issue"
+                )
+                % (self.host_id.url)
+            ) from e
 
         try:
             client.login(self.login, self.password)
         except imaplib.IMAP4.error as e:
-            raise UserError(_(
-                "Authentication failed. Possible Reasons: \n"
-                "- your credentials are incorrect (%s // **********)"
-            ) % (self.login))
+            raise UserError(
+                _(
+                    "Authentication failed. Possible Reasons: \n"
+                    "- your credentials are incorrect (%s // **********)"
+                )
+                % (self.login)
+            ) from e
 
         return client

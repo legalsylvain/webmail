@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - Today: GRAP (http://www.grap.coop)
+# Copyright (C) 2023 - Today: OaaFS
 # @author: Sylvain LE GAL (https://twitter.com/legalsylvain)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
@@ -6,9 +6,9 @@
     "summary": "Odoo as a Webmail",
     "version": "16.0.1.0.0",
     "category": "R&D",
-    "author": "GRAP",
+    "author": "OaaFS",
     "maintainers": ["legalsylvain"],
-    "website": "https://github.com/legalsylvain/webmail",
+    "website": "https://github.com/OCA/mis-builder",
     "license": "AGPL-3",
     "depends": [
         "base",
@@ -27,7 +27,7 @@
         "views/view_webmail_folder.xml",
         "views/view_webmail_mail.xml",
     ],
-    "demo" : [
+    "demo": [
         "demo/webmail_host.xml",
     ],
 }
