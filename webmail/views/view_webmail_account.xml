@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2023 - Today: GRAP (http://www.grap.coop)
+@author: Sylvain LE GAL (https://twitter.com/legalsylvain)
+License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+-->
+<odoo>
+
+    <record id="view_webmail_account_search" model="ir.ui.view">
+        <field name="model">webmail.account</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="login"/>
+                <field name="host"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_webmail_account_tree" model="ir.ui.view">
+        <field name="model">webmail.account</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="host"/>
+                <field name="login"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_webmail_account_form" model="ir.ui.view">
+        <field name="model">webmail.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Test" type="object" name="button_test"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" />
+                    <group>
+                        <group>
+                            <field name="host"/>
+                            <field name="login"/>
+                            <field name="password"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_webmail_account" model="ir.actions.act_window">
+        <field name="name">Webmail Accounts</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">webmail.account</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_webmail_account"
+        name="Webmail Accounts"
+        parent="menu_configuration"
+        action="action_webmail_account"
+        sequence="1"
+    />
+
+</odoo>

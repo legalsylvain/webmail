@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_webmail_account_user,PoS Places User,model_webmail_account,webmail.group_webmail_user,1,1,1,1
