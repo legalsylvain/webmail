@@ -17,8 +17,6 @@ class WebmailAccount(models.Model):
 
     host_id = fields.Many2one(comodel_name="webmail.host", required=True)
 
-    host_url = fields.Char(related="host_id.url", store=True)
-
     login = fields.Char(required=True)
 
     user_id = fields.Many2one(
@@ -49,13 +47,13 @@ class WebmailAccount(models.Model):
     def _get_client_connected(self):
         self.ensure_one()
         try:
-            client = imapclient.IMAPClient(host=self.host_url)
+            client = imapclient.IMAPClient(host=self.host_id.url)
         except socket.gaierror as e:
             raise UserError(_(
                 "server '%s' has not been reached. Possible Reasons: \n"
                 "- the server doesn't exist"
                 "- your odoo instance faces to network issue"
-            ) % (self.host_url))
+            ) % (self.host_id.url))
 
         try:
             client.login(self.login, self.password)
