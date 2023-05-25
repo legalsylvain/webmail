@@ -39,7 +39,6 @@ class WebmailAccount(models.Model):
         for account in self:
             account.folder_qty = len(account.folder_ids)
 
-
     @api.depends("login", "host_id.name")
     def _compute_name(self):
         for account in self:

@@ -91,7 +91,6 @@ class WebmailFolder(models.Model):
 
         _logger.info(
             "fetch from the upstream mail server."
-            " Account %s. Creation of folder %s"
-            % (webmail_account.name, vals["name"])
+            " Account %s. Creation of folder %s" % (webmail_account.name, vals["name"])
         )
         return self.create(vals)
