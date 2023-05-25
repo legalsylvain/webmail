@@ -10,7 +10,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.mail</field>
         <field name="arch" type="xml">
             <search>
-                <field name="webmail_account_id" />
+                <field name="folder_id" />
             </search>
         </field>
     </record>
@@ -19,7 +19,8 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.mail</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="webmail_account_id" />
+                <field name="identifier" />
+                <field name="folder_id" />
             </tree>
         </field>
     </record>
@@ -33,7 +34,8 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     <div class="oe_button_box" name="button_box" />
                     <group>
                         <group>
-                            <field name="webmail_account_id" />
+                            <field name="identifier" />
+                            <field name="folder_id" />
                         </group>
                         <group />
                     </group>

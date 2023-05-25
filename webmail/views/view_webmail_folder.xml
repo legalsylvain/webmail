@@ -22,6 +22,12 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
             <tree>
                 <field name="technical_name" />
                 <field name="webmail_account_id" />
+                <field name="mail_qty" />
+                    <button
+                        string="Fetch Mails"
+                        type="object"
+                        name="button_fetch_mails"
+                    />
             </tree>
         </field>
     </record>
@@ -30,12 +36,19 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.folder</field>
         <field name="arch" type="xml">
             <form>
-                <header />
+                <header>
+                    <button
+                        string="Fetch Mails"
+                        type="object"
+                        name="button_fetch_mails"
+                    />
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" />
                     <group>
                         <group>
                             <field name="name" />
+                            <field name="parent_id" />
                             <field name="technical_name" />
                             <field name="webmail_account_id" />
                         </group>

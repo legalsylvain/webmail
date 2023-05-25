@@ -22,6 +22,12 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
             <tree>
                 <field name="login" />
                 <field name="host_id" />
+                <field name="folder_qty" />
+                <button
+                    string="Fetch Folders"
+                    type="object"
+                    name="button_fetch_folders"
+                />
             </tree>
         </field>
     </record>

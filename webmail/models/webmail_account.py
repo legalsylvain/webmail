@@ -25,6 +25,21 @@ class WebmailAccount(models.Model):
 
     password = fields.Char(required=True)
 
+    folder_ids = fields.One2many(
+        comodel_name="webmail.folder",
+        inverse_name="webmail_account_id",
+        readonly=True,
+    )
+
+    folder_qty = fields.Integer(compute="_compute_folder_qty", store=True)
+
+    # Compute Section
+    @api.depends("folder_ids")
+    def _compute_folder_qty(self):
+        for account in self:
+            account.folder_qty = len(account.folder_ids)
+
+
     @api.depends("login", "host_id.name")
     def _compute_name(self):
         for account in self:
