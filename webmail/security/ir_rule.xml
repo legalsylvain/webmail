@@ -15,4 +15,22 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         ]</field>
     </record>
 
+    <record id="ir_rule_webmail_mail" model="ir.rule">
+        <field name="name">Webmail Mails</field>
+        <field name="model_id" ref="model_webmail_mail" />
+        <field name="global" eval="True" />
+        <field name="domain_force">[
+            ('user_id', '=', user.id)
+        ]</field>
+    </record>
+
+    <record id="ir_rule_webmail_folder" model="ir.rule">
+        <field name="name">Webmail Folders</field>
+        <field name="model_id" ref="model_webmail_folder" />
+        <field name="global" eval="True" />
+        <field name="domain_force">[
+            ('user_id', '=', user.id)
+        ]</field>
+    </record>
+
 </odoo>

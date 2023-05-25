@@ -12,7 +12,8 @@
     "license": "AGPL-3",
     "depends": [
         "base",
-        "mail",
+        # OCA
+        "queue_job",
     ],
     "external_dependencies": {"python": ["imapclient"]},
     "data": [
@@ -21,11 +22,12 @@
         "security/res_groups.xml",
         "security/ir.model.access.csv",
         "views/menu.xml",
+        "views/view_webmail_host.xml",
         "views/view_webmail_account.xml",
+        "views/view_webmail_folder.xml",
+        "views/view_webmail_mail.xml",
     ],
-    "demo": [
-        # "demo/res_groups.xml",
-        # "demo/pos_config.xml",
-        # "demo/pos_place.xml",
+    "demo" : [
+        "demo/webmail_host.xml",
     ],
 }

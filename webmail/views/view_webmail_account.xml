@@ -11,7 +11,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="arch" type="xml">
             <search>
                 <field name="login"/>
-                <field name="host"/>
+                <field name="host_id"/>
             </search>
         </field>
     </record>
@@ -20,8 +20,8 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.account</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="host"/>
                 <field name="login"/>
+                <field name="host_id"/>
             </tree>
         </field>
     </record>
@@ -31,13 +31,14 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button string="Test" type="object" name="button_test"/>
+                    <button string="Test connexion" type="object" name="button_test_connexion"/>
+                    <button string="Fetch Folders" type="object" name="button_fetch_folders"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" />
                     <group>
                         <group>
-                            <field name="host"/>
+                            <field name="host_id"/>
                             <field name="login"/>
                             <field name="password"/>
                             <field name="user_id"/>
@@ -45,27 +46,22 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         <group/>
                     </group>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers"/>
-                    <field name="activity_ids" widget="mail_activity"/>
-                    <field name="message_ids" widget="mail_thread"/>
-                </div>
             </form>
         </field>
     </record>
 
     <record id="action_webmail_account" model="ir.actions.act_window">
-        <field name="name">Webmail Accounts</field>
+        <field name="name">Accounts</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">webmail.account</field>
         <field name="view_mode">tree,form</field>
     </record>
 
     <menuitem id="menu_webmail_account"
-        name="Webmail Accounts"
+        name="Accounts"
         parent="menu_configuration"
         action="action_webmail_account"
-        sequence="1"
+        sequence="50"
     />
 
 </odoo>

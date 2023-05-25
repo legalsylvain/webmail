@@ -12,8 +12,8 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         groups="group_webmail_user"
     />
 
-    <menuitem id="menu_mail"
-        name="Mails"
+    <menuitem id="menu_technical_mail"
+        name="Technical Mails"
         parent="menu_root"
         sequence="15"
     />
