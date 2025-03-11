@@ -16,10 +16,10 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         </field>
     </record>
 
-    <record id="view_webmail_account_tree" model="ir.ui.view">
+    <record id="view_webmail_account_list" model="ir.ui.view">
         <field name="model">webmail.account</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="login" />
                 <field name="host_id" />
                 <field name="folder_qty" />
@@ -28,7 +28,13 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     type="object"
                     name="button_fetch_folders"
                 />
-            </tree>
+                <field name="mail_qty" />
+                <button
+                    string="Fetch Mails"
+                    type="object"
+                    name="button_fetch_mails"
+                />
+            </list>
         </field>
     </record>
 
@@ -47,6 +53,11 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         type="object"
                         name="button_fetch_folders"
                     />
+                    <button
+                        string="Fetch Mails"
+                        type="object"
+                        name="button_fetch_mails"
+                    />
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" />
@@ -57,7 +68,10 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                             <field name="password" />
                             <field name="user_id" />
                         </group>
-                        <group />
+                        <group>
+                            <field name="folder_qty" />
+                            <field name="mail_qty" />
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -68,7 +82,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="name">Accounts</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">webmail.account</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem

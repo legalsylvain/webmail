@@ -16,13 +16,13 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         </field>
     </record>
 
-    <record id="view_webmail_host_tree" model="ir.ui.view">
+    <record id="view_webmail_host_list" model="ir.ui.view">
         <field name="model">webmail.host</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="url" />
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -49,7 +49,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="name">Hosts</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">webmail.host</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem

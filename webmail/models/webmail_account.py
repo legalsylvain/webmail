@@ -33,11 +33,18 @@ class WebmailAccount(models.Model):
 
     folder_qty = fields.Integer(compute="_compute_folder_qty", store=True)
 
+    mail_qty = fields.Integer(compute="_compute_mail_qty", store=True)
+
     # Compute Section
     @api.depends("folder_ids")
     def _compute_folder_qty(self):
         for account in self:
             account.folder_qty = len(account.folder_ids)
+
+    @api.depends("folder_ids.mail_qty")
+    def _compute_mail_qty(self):
+        for account in self:
+            account.mail_qty = sum(account.mapped("folder_ids.mail_qty"))
 
     @api.depends("login", "host_id.name")
     def _compute_name(self):
@@ -50,6 +57,10 @@ class WebmailAccount(models.Model):
 
     def button_fetch_folders(self):
         self.env["webmail.folder"].with_delay()._fetch_folders(self)
+
+    def button_fetch_mails(self):
+        self.mapped("folder_ids").button_fetch_mails()
+
 
     # Private Section
     def _test_connexion(self):

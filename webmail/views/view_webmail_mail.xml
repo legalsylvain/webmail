@@ -17,10 +17,10 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         </field>
     </record>
 
-    <record id="view_webmail_mail_tree" model="ir.ui.view">
+    <record id="view_webmail_mail_list" model="ir.ui.view">
         <field name="model">webmail.mail</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="identifier" optional="hide" />
                 <field name="reply_identifier" optional="hide" />
                 <field name="date_mail" />
@@ -28,7 +28,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                 <field name="subject" />
                 <field name="origin_mail_id" />
                 <field name="folder_id" optional="hide" />
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -60,7 +60,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="name">Mails</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">webmail.mail</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem
