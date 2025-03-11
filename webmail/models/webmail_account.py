@@ -61,7 +61,6 @@ class WebmailAccount(models.Model):
     def button_fetch_mails(self):
         self.mapped("folder_ids").button_fetch_mails()
 
-
     # Private Section
     def _test_connexion(self):
         self.ensure_one()

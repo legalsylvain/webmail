@@ -8,7 +8,7 @@
     "category": "R&D",
     "author": "OaaFS",
     "maintainers": ["legalsylvain"],
-    "website": "https://github.com/legalsylvain/webmail",
+    "website": "https://github.com/OCA/mis-builder",
     "license": "AGPL-3",
     "depends": [
         "base",
