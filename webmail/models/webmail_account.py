@@ -5,10 +5,11 @@
 import imaplib
 import socket
 
-import imapclient
-
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+# import imapclient
+
 
 
 class WebmailAccount(models.Model):
@@ -53,10 +54,10 @@ class WebmailAccount(models.Model):
 
     # Action Section
     def button_test_connexion(self):
-        self.with_delay()._test_connexion()
+        self._test_connexion()
 
     def button_fetch_folders(self):
-        self.env["webmail.folder"].with_delay()._fetch_folders(self)
+        self.env["webmail.folder"]._fetch_folders(self)
 
     def button_fetch_mails(self):
         self.mapped("folder_ids").button_fetch_mails()
@@ -65,12 +66,13 @@ class WebmailAccount(models.Model):
     def _test_connexion(self):
         self.ensure_one()
         client = self._get_client_connected()
+        client.close()
         client.logout()
 
     def _get_client_connected(self):
         self.ensure_one()
         try:
-            client = imapclient.IMAPClient(host=self.host_id.url)
+            client = imaplib.IMAP4_SSL(self.host_id.url)
         except socket.gaierror as e:
             raise UserError(
                 _(

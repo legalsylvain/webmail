@@ -20,6 +20,7 @@ class WebmailMail(models.Model):
 
     folder_id = fields.Many2one(
         comodel_name="webmail.folder",
+        ondelete="cascade",
         required=True,
         readonly=True,
     )
@@ -46,6 +47,7 @@ class WebmailMail(models.Model):
     )
 
     def _fetch_mails(self, webmail_folder):
+        _logger.info(f"Fetching Mails for folder {webmail_folder.technical_name}")
         client = webmail_folder.webmail_account_id._get_client_connected()
         try:
             client.select_folder(webmail_folder.technical_name)
@@ -65,6 +67,9 @@ class WebmailMail(models.Model):
 
         # TODO ADD : [u'SINCE', date(2005, 4, 3)]
         message_ids = client.search(["NOT", "DELETED"])
+        import pdb
+
+        pdb.set_trace()
         mail_datas = client.fetch(
             message_ids, ["INTERNALDATE", "FLAGS", "RFC822.SIZE", "ENVELOPE"]
         )
@@ -75,6 +80,9 @@ class WebmailMail(models.Model):
         client.logout()
 
     def _get_or_create(self, webmail_folder, mail_data):
+        import pdb
+
+        pdb.set_trace()
         envelope = mail_data[b"ENVELOPE"]
         identifier = envelope.message_id.decode()
         reply_identifier = (
@@ -95,6 +103,7 @@ class WebmailMail(models.Model):
                 existing_mail.write(vals)
             return existing_mail
 
+        # print(f"=========================_get_or_create::BEGIN in folder {webmail_folder.technical_name}")
         origin_mail = self.search(
             [
                 ("identifier", "=", reply_identifier),
@@ -107,10 +116,18 @@ class WebmailMail(models.Model):
             ]
         )
 
+        date_mail = envelope.date
+        if not date_mail:
+            date_mail = mail_data.get(b"INTERNALDATE")
+        if not date_mail:
+            import pdb
+
+            pdb.set_trace()
+
         vals.update(
             {
                 "identifier": identifier,
-                "date_mail": envelope.date,
+                "date_mail": date_mail,
                 "reply_identifier": reply_identifier,
                 "origin_mail_id": origin_mail and origin_mail.id,
                 "subject": envelope.subject,
@@ -119,12 +136,19 @@ class WebmailMail(models.Model):
             }
         )
 
-        _logger.info(
+        _logger.debug(
             "fetch from the upstream mail server."
             " Account %s. Creation of mail %s"
             % (webmail_folder.webmail_account_id.name, identifier)
         )
-        new_mail = self.create(vals)
+        print("CREATE: ", vals["subject"])
+        try:
+            new_mail = self.create(vals)
+        except Exception as e:
+            _logger.error(e)
+            import pdb
+
+            pdb.set_trace()
 
         if other_mails:
             other_mails.write(
@@ -133,13 +157,9 @@ class WebmailMail(models.Model):
                 }
             )
 
+        # print("=========================_get_or_create::END")
+
         return new_mail
-        # import pdb; pdb.set_trace()
-        # print('{id}: {size} bytes, flags={flags}, {subject}'.format(
-        #     id=message_id,
-        #     subject=data[b'ENVELOPE'].subject.decode(),
-        #     size=data[b'RFC822.SIZE'],
-        #     flags=data[b'FLAGS']))
 
     def _get_mail_from_address(self, address):
         return "%s@%s" % (address.mailbox.decode(), address.host.decode())
