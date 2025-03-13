@@ -2,10 +2,12 @@
 # @author: Sylvain LE GAL (https://twitter.com/legalsylvain)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-import imaplib
+import email
+from bs4 import BeautifulSoup
 import logging
+import chardet
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -42,16 +44,13 @@ class WebmailMail(models.Model):
         readonly=True,
     )
 
-    envelope_data = fields.Text(
-        string="Technical field with all the envelope", readonly=True
-    )
+    body_plain = fields.Text(readonly=True)
 
     def _fetch_mails(self, webmail_folder):
         _logger.info(f"Fetching Mails for folder {webmail_folder.technical_name}")
         client = webmail_folder.webmail_account_id._get_client_connected()
-        try:
-            client.select_folder(webmail_folder.technical_name)
-        except imaplib.IMAP4.error as e:
+        status, select_code = client.select(f'"{webmail_folder.technical_name}"')
+        if status != "OK":
             client.logout()
             raise UserError(
                 _(
@@ -63,103 +62,94 @@ class WebmailMail(models.Model):
                         "account_login": webmail_folder.webmail_account_id.login,
                     }
                 )
-            ) from e
-
-        # TODO ADD : [u'SINCE', date(2005, 4, 3)]
-        message_ids = client.search(["NOT", "DELETED"])
-        import pdb
-
-        pdb.set_trace()
-        mail_datas = client.fetch(
-            message_ids, ["INTERNALDATE", "FLAGS", "RFC822.SIZE", "ENVELOPE"]
-        )
-
-        for _message_id, mail_data in mail_datas.items():
-            self._get_or_create(webmail_folder, mail_data)
-
+            )
+        status, search_result = client.search(None, "ALL")
+        for num in search_result[0].split():
+            status, mail_data = client.fetch(num, "(RFC822)")
+            self._create_or_update_mail(webmail_folder, mail_data)
         client.logout()
 
-    def _get_or_create(self, webmail_folder, mail_data):
-        import pdb
-
-        pdb.set_trace()
-        envelope = mail_data[b"ENVELOPE"]
-        identifier = envelope.message_id.decode()
-        reply_identifier = (
-            envelope.in_reply_to and envelope.in_reply_to.decode() or False
+    def _create_or_update_mail(self, webmail_folder, mail_data):
+        email_message = email.message_from_bytes(
+            mail_data[0][1], policy=email.policy.default
         )
-        vals = {
-            "folder_id": webmail_folder.id,
-        }
+        identifier = email_message["Message-ID"]
+        reply_identifier = email_message["In-Reply-To"]
+        vals = {"folder_id": webmail_folder.id}
 
         # Check if mail exists in Odoo
-        existing_mail = self.search(
-            [
-                ("identifier", "=", identifier),
-            ]
-        )
+        existing_mail = self.search([("identifier", "=", identifier)])
         if existing_mail:
             if existing_mail.folder_id != webmail_folder:
                 existing_mail.write(vals)
             return existing_mail
 
-        # print(f"=========================_get_or_create::BEGIN in folder {webmail_folder.technical_name}")
-        origin_mail = self.search(
-            [
-                ("identifier", "=", reply_identifier),
-            ]
-        )
-
-        other_mails = self.search(
-            [
-                ("reply_identifier", "=", identifier),
-            ]
-        )
-
-        date_mail = envelope.date
-        if not date_mail:
-            date_mail = mail_data.get(b"INTERNALDATE")
-        if not date_mail:
-            import pdb
-
-            pdb.set_trace()
+        origin_mail = self.search([("identifier", "=", reply_identifier)])
+        other_mails = self.search([("reply_identifier", "=", identifier)])
 
         vals.update(
             {
                 "identifier": identifier,
-                "date_mail": date_mail,
+                "date_mail": self._get_date_from_message(email_message),
                 "reply_identifier": reply_identifier,
                 "origin_mail_id": origin_mail and origin_mail.id,
-                "subject": envelope.subject,
-                "sender": self._get_mail_from_address(envelope.sender[0]),
-                "envelope_data": str(envelope),
+                "subject": self._get_subject_from_message(email_message),
+                "sender": email_message["From"],
+                "body_plain": self._get_body_plain_from_message(email_message),
             }
         )
 
-        _logger.debug(
-            "fetch from the upstream mail server."
-            " Account %s. Creation of mail %s"
-            % (webmail_folder.webmail_account_id.name, identifier)
+        _logger.info(
+            f" Fetch Mail {identifier}. (Account {webmail_folder.webmail_account_id.name})"
         )
-        print("CREATE: ", vals["subject"])
-        try:
-            new_mail = self.create(vals)
-        except Exception as e:
-            _logger.error(e)
-            import pdb
+        new_mail = self.create(vals)
+        if not other_mails:
+            return
+        other_mails.write({"origin_mail_id": new_mail.id})
 
-            pdb.set_trace()
+    @api.model
+    def _get_subject_from_message(self, email_message):
+        parts = email.header.decode_header(email_message["Subject"])
+        result = []
+        for part in parts:
+            if isinstance(part[0], bytes):
+                if part[1]:
+                    result.append(part[0].decode(part[1]))
+                else:
+                    result.append(part[0].decode())
+            else:
+                result.append(part[0])
+        return "".join(result)
 
-        if other_mails:
-            other_mails.write(
-                {
-                    "origin_mail_id": new_mail.id,
-                }
-            )
+    @api.model
+    def _get_date_from_message(self, email_message):
+        date = email.utils.parsedate_to_datetime(email_message["Date"])
+        # TODO, FIXME, handle timezone
+        return date.replace(tzinfo=None)
 
-        # print("=========================_get_or_create::END")
+    @api.model
+    def _get_body_plain_from_message(self, email_message):
+        body_plain = ""
+        if email_message.is_multipart():
+            for part in email_message.walk():
+                ctype = part.get_content_type()
+                cdispo = str(part.get('Content-Disposition'))
+                # skip any text/plain (txt) attachments
+                if ctype == 'text/plain' and 'attachment' not in cdispo:
+                    body_plain = part.get_payload(decode=True)
+                    break
+                if ctype == "text/html":
+                    html = part.get_payload(decode=True)
+                    soup = BeautifulSoup(html, features="lxml")
+                    body_plain = soup.get_text()
+                    break
+        else:
+            body_plain = email_message.get_payload(decode=True)
 
-        return new_mail
-
-    def _get_mail_from_address(self, address):
-        return "%s@%s" % (address.mailbox.decode(), address.host.decode())
+        if body_plain:
+            try:
+                return body_plain.decode()
+            except:
+                detection = chardet.detect(body_plain)
+                return body_plain.decode(detection.get("encoding"))
+        return ""

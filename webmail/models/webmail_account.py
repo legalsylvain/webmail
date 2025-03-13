@@ -11,7 +11,6 @@ from odoo.exceptions import UserError
 # import imapclient
 
 
-
 class WebmailAccount(models.Model):
     _name = "webmail.account"
     _description = "Webmail Accounts"
