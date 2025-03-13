@@ -4,6 +4,7 @@
 
 import email
 import logging
+import hashlib
 
 import chardet
 from bs4 import BeautifulSoup
@@ -34,9 +35,9 @@ class WebmailMail(models.Model):
 
     reply_identifier = fields.Char(readonly=True)
 
-    subject = fields.Char(required=True, readonly=True)
+    subject = fields.Char(readonly=True)
 
-    sender = fields.Char(required=True, readonly=True)
+    sender = fields.Char(readonly=True)
 
     user_id = fields.Many2one(
         comodel_name="res.users",
@@ -65,7 +66,11 @@ class WebmailMail(models.Model):
                 )
             )
         status, search_result = client.search(None, "ALL")
-        for num in search_result[0].split():
+        num_list = search_result[0].split()
+        for num in num_list:
+            _logger.info(
+                f" {num.decode()}/{len(num_list)}: Get Mail in {webmail_folder.technical_name})."
+            )
             status, mail_data = client.fetch(num, "(RFC822)")
             self._create_or_update_mail(webmail_folder, mail_data)
         client.logout()
@@ -74,7 +79,7 @@ class WebmailMail(models.Model):
         email_message = email.message_from_bytes(
             mail_data[0][1], policy=email.policy.default
         )
-        identifier = email_message["Message-ID"]
+        identifier = self._get_identifier_from_message(email_message, mail_data[0][1])
         reply_identifier = email_message["In-Reply-To"]
         vals = {"folder_id": webmail_folder.id}
 
@@ -100,16 +105,28 @@ class WebmailMail(models.Model):
             }
         )
 
-        _logger.info(
+        _logger.debug(
             f" Fetch Mail {identifier}. (Account {webmail_folder.webmail_account_id.name})"
         )
-        new_mail = self.create(vals)
+        try:
+            new_mail = self.create(vals)
+        except:
+            import pdb; pdb.set_trace()
         if not other_mails:
             return
         other_mails.write({"origin_mail_id": new_mail.id})
 
     @api.model
+    def _get_identifier_from_message(self, email_message, message_bytes):
+        identifier = email_message["Message-ID"]
+        if not identifier:
+            identifier = hashlib.sha256(message_bytes).hexdigest()
+        return identifier
+
+    @api.model
     def _get_subject_from_message(self, email_message):
+        if not email_message["Subject"]:
+            return ""
         parts = email.header.decode_header(email_message["Subject"])
         result = []
         for part in parts:
@@ -120,12 +137,21 @@ class WebmailMail(models.Model):
                     result.append(part[0].decode())
             else:
                 result.append(part[0])
-        return "".join(result)
+        return "".join(result).replace("\x00" ,"")
 
     @api.model
     def _get_date_from_message(self, email_message):
-        date = email.utils.parsedate_to_datetime(email_message["Date"])
-        # TODO, FIXME, handle timezone
+        if "Date" in email_message:
+            # TODO, FIXME, handle timezone
+            date = email.utils.parsedate_to_datetime(email_message["Date"])
+        elif "Received" in email_message:
+            date = email.utils.parsedate_to_datetime(
+                email_message["Received"].split(";")[-1]
+            )
+        else:
+            import pdb
+
+            pdb.set_trace()
         return date.replace(tzinfo=None)
 
     @api.model
@@ -151,6 +177,16 @@ class WebmailMail(models.Model):
             try:
                 return body_plain.decode()
             except:
-                detection = chardet.detect(body_plain)
-                return body_plain.decode(detection.get("encoding"))
+                try:
+                    if type(body_plain) is str:
+                        return body_plain
+                    detection = chardet.detect(body_plain)
+                    return body_plain.decode(detection.get("encoding"))
+                except:
+                    print("=================================================")
+                    print(body_plain)
+                    print("=================================================")
+                    import pdb
+
+                    pdb.set_trace()
         return ""

@@ -59,7 +59,11 @@ class WebmailAccount(models.Model):
         self.env["webmail.folder"]._fetch_folders(self)
 
     def button_fetch_mails(self):
-        self.mapped("folder_ids").button_fetch_mails()
+        for folder in self.mapped("folder_ids").filtered(
+            lambda x: x.mail_qty == 0
+        ):
+            folder.button_fetch_mails()
+            self.env.cr.commit()
 
     # Private Section
     def _test_connexion(self):
