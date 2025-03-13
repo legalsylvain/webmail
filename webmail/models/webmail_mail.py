@@ -3,9 +3,10 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 import email
-from bs4 import BeautifulSoup
 import logging
+
 import chardet
+from bs4 import BeautifulSoup
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -133,9 +134,9 @@ class WebmailMail(models.Model):
         if email_message.is_multipart():
             for part in email_message.walk():
                 ctype = part.get_content_type()
-                cdispo = str(part.get('Content-Disposition'))
+                cdispo = str(part.get("Content-Disposition"))
                 # skip any text/plain (txt) attachments
-                if ctype == 'text/plain' and 'attachment' not in cdispo:
+                if ctype == "text/plain" and "attachment" not in cdispo:
                     body_plain = part.get_payload(decode=True)
                     break
                 if ctype == "text/html":
