@@ -54,6 +54,14 @@ class WebmailFolder(models.Model):
     def button_fetch_mails(self):
         self._fetch_mails()
 
+    def action_view_mails(self):
+        mails = self.mapped("mail_ids")
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "webmail.action_webmail_mail"
+        )
+        action["domain"] = [("id", "in", mails.ids)]
+        return action
+
     # Private Section
     def _get_or_create(self, webmail_account, technical_name):
         separator = "/"

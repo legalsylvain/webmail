@@ -63,6 +63,22 @@ class WebmailAccount(models.Model):
             folder._fetch_mails()
             self.env.cr.commit()  # pylint: disable=invalid-commit
 
+    def action_view_folders(self):
+        folders = self.mapped("folder_ids")
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "webmail.action_webmail_folder"
+        )
+        action["domain"] = [("id", "in", folders.ids)]
+        return action
+
+    def action_view_mails(self):
+        mails = self.mapped("folder_ids.mail_ids")
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "webmail.action_webmail_mail"
+        )
+        action["domain"] = [("id", "in", mails.ids)]
+        return action
+
     # Private Section
     def _test_connexion(self):
         self.ensure_one()

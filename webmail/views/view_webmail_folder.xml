@@ -44,7 +44,18 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     />
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box" />
+
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_mails"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-envelope-o"
+                            invisible="mail_qty == 0"
+                        >
+                            <field name="mail_qty" widget="statinfo" string="Mails" />
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name" />

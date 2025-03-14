@@ -60,17 +60,36 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     />
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box" />
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_folders"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-folder-open-o"
+                            invisible="folder_qty == 0"
+                        >
+                            <field
+                                name="folder_qty"
+                                widget="statinfo"
+                                string="Folders"
+                            />
+                        </button>
+                        <button
+                            name="action_view_mails"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-envelope-o"
+                            invisible="mail_qty == 0"
+                        >
+                            <field name="mail_qty" widget="statinfo" string="Mails" />
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="host_id" />
                             <field name="login" />
                             <field name="password" />
                             <field name="user_id" />
-                        </group>
-                        <group>
-                            <field name="folder_qty" />
-                            <field name="mail_qty" />
                         </group>
                     </group>
                 </sheet>

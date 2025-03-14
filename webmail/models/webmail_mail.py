@@ -48,6 +48,16 @@ class WebmailMail(models.Model):
 
     body_plain = fields.Text(readonly=True)
 
+    # Overload Section
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for mail in records:
+            other_mails = self.search([("reply_identifier", "=", mail.identifier)])
+            if other_mails:
+                other_mails.write({"origin_mail_id": mail.id})
+        return records
+
     def _create_or_update_mail(self, webmail_folder, mail_data):
         email_message = email.message_from_bytes(
             mail_data[0][1], policy=email.policy.default
@@ -64,7 +74,6 @@ class WebmailMail(models.Model):
             return existing_mail
 
         origin_mail = self.search([("identifier", "=", reply_identifier)])
-        other_mails = self.search([("reply_identifier", "=", identifier)])
 
         vals.update(
             {
@@ -81,10 +90,7 @@ class WebmailMail(models.Model):
         _logger.debug(
             f" Fetch Mail {identifier}. (Account {webmail_folder.webmail_account_id.name})"
         )
-        new_mail = self.create(vals)
-        if not other_mails:
-            return
-        other_mails.write({"origin_mail_id": new_mail.id})
+        return self.create(vals)
 
     @api.model
     def _get_identifier_from_message(self, email_message, message_bytes):
