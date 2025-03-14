@@ -68,7 +68,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         name="Mails"
         parent="menu_technical_mail"
         action="action_webmail_mail"
-        sequence="5"
+        sequence="30"
     />
 
 </odoo>

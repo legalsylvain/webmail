@@ -15,19 +15,15 @@
         # OCA
         "queue_job",
     ],
-    "external_dependencies": {"python": ["imapclient", "bs4"]},
+    "external_dependencies": {"python": ["imapclient", "beautifulsoup4"]},
     "data": [
         "security/ir_module_category.xml",
         "security/ir_rule.xml",
         "security/res_groups.xml",
         "security/ir.model.access.csv",
         "views/menu.xml",
-        "views/view_webmail_host.xml",
         "views/view_webmail_account.xml",
         "views/view_webmail_folder.xml",
         "views/view_webmail_mail.xml",
-    ],
-    "demo": [
-        "demo/webmail_host.xml",
     ],
 }

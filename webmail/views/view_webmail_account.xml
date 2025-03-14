@@ -11,7 +11,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="arch" type="xml">
             <search>
                 <field name="login" />
-                <field name="host_id" />
+                <field name="url" />
             </search>
         </field>
     </record>
@@ -21,7 +21,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="arch" type="xml">
             <list>
                 <field name="login" />
-                <field name="host_id" />
+                <field name="url" />
                 <field name="folder_qty" />
                 <button
                     string="Fetch Folders"
@@ -86,7 +86,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     </div>
                     <group>
                         <group>
-                            <field name="host_id" />
+                            <field name="url" />
                             <field name="login" />
                             <field name="password" />
                             <field name="user_id" />

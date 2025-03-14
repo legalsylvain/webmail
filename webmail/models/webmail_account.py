@@ -15,9 +15,7 @@ class WebmailAccount(models.Model):
     _name = "webmail.account"
     _description = "Webmail Accounts"
 
-    name = fields.Char(compute="_compute_name", store=True)
-
-    host_id = fields.Many2one(comodel_name="webmail.host", required=True)
+    url = fields.Char(required=True)
 
     login = fields.Char(required=True)
 
@@ -45,11 +43,6 @@ class WebmailAccount(models.Model):
     def _compute_mail_qty(self):
         for account in self:
             account.mail_qty = sum(account.mapped("folder_ids.mail_qty"))
-
-    @api.depends("login", "host_id.name")
-    def _compute_name(self):
-        for account in self:
-            account.name = "%s (%s)" % (account.login, account.host_id.name)
 
     # Action Section
     def button_test_connexion(self):
@@ -89,7 +82,7 @@ class WebmailAccount(models.Model):
     def _get_client_connected(self):
         self.ensure_one()
         try:
-            client = imaplib.IMAP4_SSL(self.host_id.url)
+            client = imaplib.IMAP4_SSL(self.url)
         except socket.gaierror as e:
             raise UserError(
                 _(
@@ -97,7 +90,7 @@ class WebmailAccount(models.Model):
                     "- the server doesn't exist"
                     "- your odoo instance faces to network issue"
                 )
-                % (self.host_id.url)
+                % (self.url)
             ) from e
 
         try:
