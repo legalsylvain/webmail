@@ -29,7 +29,11 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     name="button_fetch_folders"
                 />
                 <field name="mail_qty" />
-                <button string="Fetch Mails" type="object" name="button_fetch_mails" />
+                <button
+                    string="Fetch Mails (by Batch)"
+                    type="object"
+                    name="button_fetch_mails_by_batch"
+                />
             </list>
         </field>
     </record>
@@ -50,9 +54,9 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         name="button_fetch_folders"
                     />
                     <button
-                        string="Fetch Mails"
+                        string="Fetch Mails (by Batch)"
                         type="object"
-                        name="button_fetch_mails"
+                        name="button_fetch_mails_by_batch"
                     />
                 </header>
                 <sheet>

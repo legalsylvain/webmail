@@ -3,8 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 import email
-import logging
 import hashlib
+import logging
 
 import chardet
 from bs4 import BeautifulSoup
@@ -48,33 +48,6 @@ class WebmailMail(models.Model):
 
     body_plain = fields.Text(readonly=True)
 
-    def _fetch_mails(self, webmail_folder):
-        _logger.info(f"Fetching Mails for folder {webmail_folder.technical_name}")
-        client = webmail_folder.webmail_account_id._get_client_connected()
-        status, select_code = client.select(f'"{webmail_folder.technical_name}"')
-        if status != "OK":
-            client.logout()
-            raise UserError(
-                _(
-                    "Folder %(folder_name)s doesn't exists for account %(account_login)s."
-                )
-                % (
-                    {
-                        "folder_name": webmail_folder.technical_name,
-                        "account_login": webmail_folder.webmail_account_id.login,
-                    }
-                )
-            )
-        status, search_result = client.search(None, "ALL")
-        num_list = search_result[0].split()
-        for num in num_list:
-            _logger.info(
-                f" {num.decode()}/{len(num_list)}: Get Mail in {webmail_folder.technical_name})."
-            )
-            status, mail_data = client.fetch(num, "(RFC822)")
-            self._create_or_update_mail(webmail_folder, mail_data)
-        client.logout()
-
     def _create_or_update_mail(self, webmail_folder, mail_data):
         email_message = email.message_from_bytes(
             mail_data[0][1], policy=email.policy.default
@@ -108,10 +81,7 @@ class WebmailMail(models.Model):
         _logger.debug(
             f" Fetch Mail {identifier}. (Account {webmail_folder.webmail_account_id.name})"
         )
-        try:
-            new_mail = self.create(vals)
-        except:
-            import pdb; pdb.set_trace()
+        new_mail = self.create(vals)
         if not other_mails:
             return
         other_mails.write({"origin_mail_id": new_mail.id})
@@ -137,7 +107,7 @@ class WebmailMail(models.Model):
                     result.append(part[0].decode())
             else:
                 result.append(part[0])
-        return "".join(result).replace("\x00" ,"")
+        return "".join(result).replace("\x00", "")
 
     @api.model
     def _get_date_from_message(self, email_message):
@@ -149,9 +119,7 @@ class WebmailMail(models.Model):
                 email_message["Received"].split(";")[-1]
             )
         else:
-            import pdb
-
-            pdb.set_trace()
+            raise UserError(_("Date not found"))
         return date.replace(tzinfo=None)
 
     @api.model
@@ -176,17 +144,9 @@ class WebmailMail(models.Model):
         if body_plain:
             try:
                 return body_plain.decode()
-            except:
-                try:
-                    if type(body_plain) is str:
-                        return body_plain
-                    detection = chardet.detect(body_plain)
-                    return body_plain.decode(detection.get("encoding"))
-                except:
-                    print("=================================================")
-                    print(body_plain)
-                    print("=================================================")
-                    import pdb
-
-                    pdb.set_trace()
+            except BaseException:
+                if type(body_plain) is str:
+                    return body_plain
+                detection = chardet.detect(body_plain)
+                return body_plain.decode(detection.get("encoding"))
         return ""

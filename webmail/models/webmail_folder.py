@@ -3,7 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -51,22 +52,9 @@ class WebmailFolder(models.Model):
 
     # Action Section
     def button_fetch_mails(self):
-        for folder in self:
-            self.env["webmail.mail"]._fetch_mails(folder)
+        self._fetch_mails()
 
     # Private Section
-    def _fetch_folders(self, webmail_account):
-        client = webmail_account._get_client_connected()
-        status, folder_datas = client.list()
-        client.logout()
-
-        for folder_data in folder_datas:
-            technical_name = folder_data.decode().split(' "/" ')[-1]
-            if technical_name.startswith('"') and technical_name.endswith('"'):
-                technical_name = technical_name[1:-1]
-
-            self._get_or_create(webmail_account, technical_name)
-
     def _get_or_create(self, webmail_account, technical_name):
         separator = "/"
         # Check if folder exist in Odoo
@@ -99,3 +87,34 @@ class WebmailFolder(models.Model):
             " Account %s. Creation of folder %s" % (webmail_account.name, vals["name"])
         )
         return self.create(vals)
+
+    def _fetch_mails(self):
+        for webmail_folder in self:
+            client = webmail_folder.webmail_account_id._get_client_connected()
+            _logger.info(f"Fetching Mails for folder {webmail_folder.technical_name}")
+            status, select_code = client.select(f'"{webmail_folder.technical_name}"')
+            if status != "OK":
+                client.logout()
+                raise UserError(
+                    _(
+                        "Folder %(folder_name)s doesn't exists for account %(account_login)s."
+                    )
+                    % (
+                        {
+                            "folder_name": webmail_folder.technical_name,
+                            "account_login": webmail_folder.webmail_account_id.login,
+                        }
+                    )
+                )
+            status, search_result = client.search(None, "ALL")
+            num_list = search_result[0].split()
+            for num in num_list:
+                _logger.info(
+                    f" {num.decode()}/{len(num_list)}:"
+                    f" Get Mail in {webmail_folder.technical_name})."
+                )
+                status, mail_data = client.fetch(num, "(RFC822)")
+                self.env["webmail.mail"]._create_or_update_mail(
+                    webmail_folder, mail_data
+                )
+            client.logout()

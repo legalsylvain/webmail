@@ -56,14 +56,12 @@ class WebmailAccount(models.Model):
         self._test_connexion()
 
     def button_fetch_folders(self):
-        self.env["webmail.folder"]._fetch_folders(self)
+        self._fetch_folders()
 
-    def button_fetch_mails(self):
-        for folder in self.mapped("folder_ids").filtered(
-            lambda x: x.mail_qty == 0
-        ):
-            folder.button_fetch_mails()
-            self.env.cr.commit()
+    def button_fetch_mails_by_batch(self):
+        for folder in self.mapped("folder_ids").filtered(lambda x: x.mail_qty == 0):
+            folder._fetch_mails()
+            self.env.cr.commit()  # pylint: disable=invalid-commit
 
     # Private Section
     def _test_connexion(self):
@@ -98,3 +96,16 @@ class WebmailAccount(models.Model):
             ) from e
 
         return client
+
+    def _fetch_folders(self):
+        for account in self:
+            client = account._get_client_connected()
+            status, folder_datas = client.list()
+            client.logout()
+
+            for folder_data in folder_datas:
+                technical_name = folder_data.decode().split(' "/" ')[-1]
+                if technical_name.startswith('"') and technical_name.endswith('"'):
+                    technical_name = technical_name[1:-1]
+
+                self.env["webmail.folder"]._get_or_create(account, technical_name)

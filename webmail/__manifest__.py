@@ -15,7 +15,7 @@
         # OCA
         "queue_job",
     ],
-    "external_dependencies": {"python": ["imapclient"]},
+    "external_dependencies": {"python": ["imapclient", "bs4"]},
     "data": [
         "security/ir_module_category.xml",
         "security/ir_rule.xml",
