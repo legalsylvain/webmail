@@ -15,6 +15,8 @@ class WebmailAccount(models.Model):
     _name = "webmail.account"
     _description = "Webmail Accounts"
 
+    _rec_name = "login"
+
     url = fields.Char(required=True)
 
     login = fields.Char(required=True)

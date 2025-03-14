@@ -19,6 +19,7 @@ class WebmailMail(models.Model):
     _name = "webmail.mail"
     _description = "Webmail Mail"
     _order = "date_mail desc"
+    _rec_name = "subject"
 
     date_mail = fields.Datetime(required=True, readonly=True)
 
