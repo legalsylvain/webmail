@@ -23,7 +23,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
             <list>
                 <field name="identifier" optional="hide" />
                 <field name="reply_identifier" optional="hide" />
-                <field name="date_mail" />
+                <field name="date" />
                 <field name="sender" />
                 <field name="subject" />
                 <field name="origin_mail_id" optional="hide" />
@@ -43,7 +43,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         <field name="identifier" />
                         <field name="reply_identifier" />
                         <field name="origin_mail_id" />
-                        <field name="date_mail" />
+                        <field name="date" />
                         <field name="sender" />
                         <field name="subject" />
                         <field name="folder_id" />

@@ -6,8 +6,7 @@ import email
 import hashlib
 import logging
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ _logger = logging.getLogger(__name__)
 class WebmailMail(models.Model):
     _name = "webmail.mail"
     _description = "Webmail Mail"
-    _order = "date_mail desc"
+    _order = "date desc"
     _rec_name = "subject"
 
     folder_id = fields.Many2one(
@@ -39,15 +38,14 @@ class WebmailMail(models.Model):
     origin_mail_id = fields.Many2one(
         comodel_name="webmail.mail", compute="_compute_origin_mail_id", store=True
     )
+    data = fields.Text(readonly=True)
 
     # Extra Mail Fields
-    date_mail = fields.Datetime(required=True, readonly=True)
+    date = fields.Datetime(required=True, readonly=True)
 
     subject = fields.Char(readonly=True)
 
     sender = fields.Char(readonly=True)
-
-    data = fields.Text(readonly=True)
 
     body = fields.Html("Contents", readonly=True, sanitize_style=True)
 
@@ -73,7 +71,6 @@ class WebmailMail(models.Model):
 
         identifier = self._get_identifier_from_message(email_message, mail_data)
         message_dict = self.env["mail.thread"].message_parse(email_message)
-
         # Check if mail exists in Odoo
         existing_mail = self.search([("identifier", "=", identifier)])
         if existing_mail:
@@ -86,8 +83,8 @@ class WebmailMail(models.Model):
         vals = {
             "identifier": identifier,
             "reply_identifier": email_message["In-Reply-To"],
+            "date": message_dict["date"],
             "data": data,
-            "date_mail": self._get_date_from_message(email_message),
             "folder_id": webmail_folder.id,
             "subject": message_dict["subject"],
             "sender": email_message["From"],
@@ -111,16 +108,3 @@ class WebmailMail(models.Model):
         if not identifier:
             identifier = hashlib.sha256(message_bytes).hexdigest()
         return identifier
-
-    @api.model
-    def _get_date_from_message(self, email_message):
-        if "Date" in email_message:
-            # TODO, FIXME, handle timezone
-            date = email.utils.parsedate_to_datetime(email_message["Date"])
-        elif "Received" in email_message:
-            date = email.utils.parsedate_to_datetime(
-                email_message["Received"].split(";")[-1]
-            )
-        else:
-            raise UserError(_("Date not found"))
-        return date.replace(tzinfo=None)
