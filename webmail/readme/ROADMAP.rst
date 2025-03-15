@@ -1,5 +1,6 @@
-- handle attachments
-- improve attachments, avoiding attachments duplication where
-  data are the same.
-- insert "Fold" / "Unfold" quoted mail part.
 - handle conversation
+- improve attachments,
+  - set 100% to big images, to avoid overlap.
+  - avoiding attachments duplication where data are the same.
+    (maybe a dedicated module)
+- insert "Fold" / "Unfold" quoted mail part.

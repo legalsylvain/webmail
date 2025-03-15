@@ -87,6 +87,7 @@ class WebmailMail(models.Model):
             return existing_mail
 
         message_dict = self.env["mail.thread"].message_parse(email_message)
+
         # Check if mail exists in Odoo
         vals = {
             "identifier": identifier,
@@ -94,7 +95,7 @@ class WebmailMail(models.Model):
             "date": message_dict["date"],
             "data": data,
             "folder_id": webmail_folder.id,
-            "subject": message_dict["subject"],
+            "subject": message_dict.get("subject"),
             "from_text": message_dict["from"],
             "to_text": message_dict["to"],
             "cc_text": message_dict["cc"],
@@ -106,7 +107,16 @@ class WebmailMail(models.Model):
             f" {webmail_folder.technical_name}:"
             f" Creation of mail {identifier}."
         )
-        return self.create(vals)
+        mail = self.create(vals)
+        if message_dict["attachments"]:
+            res = self.env["mail.thread"]._process_attachments_for_post(
+                message_dict["attachments"],
+                [],
+                {"model": "webmail.mail", "res_id": mail.id, "body": vals["body"]},
+            )
+            if "body" in res and res["body"] != vals["body"]:
+                mail.write({"body": res["body"]})
+        return mail
 
     @api.model
     def _get_identifier_from_message(self, email_message, message_bytes):
