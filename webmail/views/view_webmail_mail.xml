@@ -42,15 +42,17 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                 <sheet>
                     <div class="oe_button_box" name="button_box" />
                     <group>
-                        <field name="subject" />
-                        <field name="date" />
-                        <field name="folder_id" />
-                        <field name="origin_mail_id" />
-                    </group>
-                    <group>
-                        <field name="from_text" />
-                        <field name="to_text" />
-                        <field name="cc_text" />
+                        <group>
+                            <field name="subject" />
+                            <field name="date" />
+                            <field name="folder_id" />
+                            <field name="origin_mail_id" />
+                        </group>
+                        <group>
+                            <field name="from_text" />
+                            <field name="to_text" />
+                            <field name="cc_text" />
+                        </group>
                     </group>
                     <notebook>
                         <page string="body">
@@ -67,6 +69,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         </page>
                     </notebook>
                 </sheet>
+                <chatter />
             </form>
         </field>
     </record>

@@ -13,6 +13,7 @@ _logger = logging.getLogger(__name__)
 
 class WebmailMail(models.Model):
     _name = "webmail.mail"
+    _inherit = ["mail.thread"]
     _description = "Webmail Mail"
     _order = "date desc"
     _rec_name = "subject"
