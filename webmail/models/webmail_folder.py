@@ -91,8 +91,7 @@ class WebmailFolder(models.Model):
             )
 
         _logger.debug(
-            "fetch from the upstream mail server."
-            " Account %s. Creation of folder %s" % (webmail_account.name, vals["name"])
+            f"[FETCH] {webmail_account.login}:" f" Creation of folder {vals['name']}."
         )
         return self.create(vals)
 
@@ -123,6 +122,6 @@ class WebmailFolder(models.Model):
                 )
                 status, mail_data = client.fetch(num, "(RFC822)")
                 self.env["webmail.mail"]._create_or_update_mail(
-                    webmail_folder, mail_data
+                    webmail_folder, mail_data[0][1]
                 )
             client.logout()

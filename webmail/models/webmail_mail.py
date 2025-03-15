@@ -6,9 +6,6 @@ import email
 import hashlib
 import logging
 
-import chardet
-from bs4 import BeautifulSoup
-
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -21,24 +18,12 @@ class WebmailMail(models.Model):
     _order = "date_mail desc"
     _rec_name = "subject"
 
-    date_mail = fields.Datetime(required=True, readonly=True)
-
     folder_id = fields.Many2one(
         comodel_name="webmail.folder",
         ondelete="cascade",
         required=True,
         readonly=True,
     )
-
-    identifier = fields.Char(required=True, readonly=True)
-
-    origin_mail_id = fields.Many2one(comodel_name="webmail.mail", readonly=True)
-
-    reply_identifier = fields.Char(readonly=True)
-
-    subject = fields.Char(readonly=True)
-
-    sender = fields.Char(readonly=True)
 
     user_id = fields.Many2one(
         comodel_name="res.users",
@@ -47,7 +32,30 @@ class WebmailMail(models.Model):
         readonly=True,
     )
 
-    body_plain = fields.Text(readonly=True)
+    identifier = fields.Char(required=True, readonly=True)
+
+    reply_identifier = fields.Char(readonly=True)
+
+    origin_mail_id = fields.Many2one(
+        comodel_name="webmail.mail", compute="_compute_origin_mail_id", store=True
+    )
+
+    # Extra Mail Fields
+    date_mail = fields.Datetime(required=True, readonly=True)
+
+    subject = fields.Char(readonly=True)
+
+    sender = fields.Char(readonly=True)
+
+    data = fields.Text(readonly=True)
+
+    body = fields.Html("Contents", readonly=True, sanitize_style=True)
+
+    @api.depends("reply_identifier")
+    def _compute_origin_mail_id(self):
+        for mail in self:
+            origin_mail = self.search([("identifier", "=", mail.reply_identifier)])
+            mail.origin_mail_id = origin_mail.id
 
     # Overload Section
     @api.model_create_multi
@@ -60,41 +68,46 @@ class WebmailMail(models.Model):
         return records
 
     def _create_or_update_mail(self, webmail_folder, mail_data):
-        email_message = email.message_from_bytes(
-            mail_data[0][1], policy=email.policy.default
-        )
-        identifier = self._get_identifier_from_message(email_message, mail_data[0][1])
+        email_message = email.message_from_bytes(mail_data, policy=email.policy.default)
+        data = email_message.as_string()
+
+        identifier = self._get_identifier_from_message(email_message, mail_data)
+        message_dict = self.env["mail.thread"].message_parse(email_message)
         reply_identifier = email_message["In-Reply-To"]
-        vals = {"folder_id": webmail_folder.id}
 
         # Check if mail exists in Odoo
         existing_mail = self.search([("identifier", "=", identifier)])
         if existing_mail:
+            # If mail exists, we just handle the use case where the mail
+            # has moved from a folder to another, in the Mailbox.
             if existing_mail.folder_id != webmail_folder:
-                existing_mail.write(vals)
+                existing_mail.write({"folder_id": webmail_folder.id})
             return existing_mail
 
-        origin_mail = self.search([("identifier", "=", reply_identifier)])
-
-        vals.update(
-            {
-                "identifier": identifier,
-                "date_mail": self._get_date_from_message(email_message),
-                "reply_identifier": reply_identifier,
-                "origin_mail_id": origin_mail and origin_mail.id,
-                "subject": self._get_subject_from_message(email_message),
-                "sender": email_message["From"],
-                "body_plain": self._get_body_plain_from_message(email_message),
-            }
-        )
+        vals = {
+            "identifier": identifier,
+            "data": data,
+            "date_mail": self._get_date_from_message(email_message),
+            "folder_id": webmail_folder.id,
+            "reply_identifier": reply_identifier,
+            "subject": self._get_subject_from_message(email_message),
+            "sender": email_message["From"],
+            "body": message_dict["body"],
+        }
 
         _logger.debug(
-            f" Fetch Mail {identifier}. (Account {webmail_folder.webmail_account_id.name})"
+            f"[FETCH] {webmail_folder.webmail_account_id.login} /"
+            f" {webmail_folder.technical_name}:"
+            f" Creation of mail {identifier}."
         )
         return self.create(vals)
 
     @api.model
     def _get_identifier_from_message(self, email_message, message_bytes):
+        """Extract Message-ID field from message data.
+        This field is like a unique ID for email systems.
+        In rare case, this fields is not set. In that case,
+        we generate a unique text, based on an hash of the email data."""
         identifier = email_message["Message-ID"]
         if not identifier:
             identifier = hashlib.sha256(message_bytes).hexdigest()
@@ -128,32 +141,3 @@ class WebmailMail(models.Model):
         else:
             raise UserError(_("Date not found"))
         return date.replace(tzinfo=None)
-
-    @api.model
-    def _get_body_plain_from_message(self, email_message):
-        body_plain = ""
-        if email_message.is_multipart():
-            for part in email_message.walk():
-                ctype = part.get_content_type()
-                cdispo = str(part.get("Content-Disposition"))
-                # skip any text/plain (txt) attachments
-                if ctype == "text/plain" and "attachment" not in cdispo:
-                    body_plain = part.get_payload(decode=True)
-                    break
-                if ctype == "text/html":
-                    html = part.get_payload(decode=True)
-                    soup = BeautifulSoup(html, features="lxml")
-                    body_plain = soup.get_text()
-                    break
-        else:
-            body_plain = email_message.get_payload(decode=True)
-
-        if body_plain:
-            try:
-                return body_plain.decode()
-            except BaseException:
-                if type(body_plain) is str:
-                    return body_plain
-                detection = chardet.detect(body_plain)
-                return body_plain.decode(detection.get("encoding"))
-        return ""

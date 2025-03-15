@@ -26,7 +26,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                 <field name="date_mail" />
                 <field name="sender" />
                 <field name="subject" />
-                <field name="origin_mail_id" />
+                <field name="origin_mail_id" optional="hide" />
                 <field name="folder_id" optional="hide" />
             </list>
         </field>
@@ -48,9 +48,14 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         <field name="subject" />
                         <field name="folder_id" />
                     </group>
-                    <group>
-                        <field name="body_plain" />
-                    </group>
+                    <notebook>
+                        <page string="body">
+                            <field name="body" widget="html_mail" />
+                        </page>
+                        <page string="data">
+                            <field name="data" />
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

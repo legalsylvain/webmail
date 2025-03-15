@@ -11,7 +11,7 @@
     "website": "https://github.com/OCA/mis-builder",
     "license": "AGPL-3",
     "depends": [
-        "base",
+        "mail",
         # OCA
         "queue_job",
     ],
