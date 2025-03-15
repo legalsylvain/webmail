@@ -36,7 +36,10 @@ class WebmailMail(models.Model):
     reply_identifier = fields.Char(readonly=True)
 
     origin_mail_id = fields.Many2one(
-        comodel_name="webmail.mail", compute="_compute_origin_mail_id", store=True
+        comodel_name="webmail.mail",
+        compute="_compute_origin_mail_id",
+        store=True,
+        precompute=True,
     )
     data = fields.Text(readonly=True)
 
@@ -45,7 +48,11 @@ class WebmailMail(models.Model):
 
     subject = fields.Char(readonly=True)
 
-    sender = fields.Char(readonly=True)
+    from_text = fields.Char(readonly=True)
+
+    to_text = fields.Char(readonly=True)
+
+    cc_text = fields.Char(readonly=True)
 
     body = fields.Html("Contents", readonly=True, sanitize_style=True)
 
@@ -70,8 +77,6 @@ class WebmailMail(models.Model):
         data = email_message.as_string()
 
         identifier = self._get_identifier_from_message(email_message, mail_data)
-        message_dict = self.env["mail.thread"].message_parse(email_message)
-        # Check if mail exists in Odoo
         existing_mail = self.search([("identifier", "=", identifier)])
         if existing_mail:
             # If mail exists, we just handle the use case where the mail
@@ -80,6 +85,8 @@ class WebmailMail(models.Model):
                 existing_mail.write({"folder_id": webmail_folder.id})
             return existing_mail
 
+        message_dict = self.env["mail.thread"].message_parse(email_message)
+        # Check if mail exists in Odoo
         vals = {
             "identifier": identifier,
             "reply_identifier": email_message["In-Reply-To"],
@@ -87,7 +94,9 @@ class WebmailMail(models.Model):
             "data": data,
             "folder_id": webmail_folder.id,
             "subject": message_dict["subject"],
-            "sender": email_message["From"],
+            "from_text": message_dict["from"],
+            "to_text": message_dict["to"],
+            "cc_text": message_dict["cc"],
             "body": message_dict["body"],
         }
 

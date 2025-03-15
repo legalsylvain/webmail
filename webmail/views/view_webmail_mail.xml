@@ -10,7 +10,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.mail</field>
         <field name="arch" type="xml">
             <search>
-                <field name="sender" />
+                <field name="from_text" />
                 <field name="subject" />
                 <field name="folder_id" />
             </search>
@@ -24,7 +24,9 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                 <field name="identifier" optional="hide" />
                 <field name="reply_identifier" optional="hide" />
                 <field name="date" />
-                <field name="sender" />
+                <field name="from_text" />
+                <field name="to_text" optional="hide" />
+                <field name="cc_text" optional="hide" />
                 <field name="subject" />
                 <field name="origin_mail_id" optional="hide" />
                 <field name="folder_id" optional="hide" />
@@ -40,13 +42,15 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                 <sheet>
                     <div class="oe_button_box" name="button_box" />
                     <group>
-                        <field name="identifier" />
-                        <field name="reply_identifier" />
-                        <field name="origin_mail_id" />
-                        <field name="date" />
-                        <field name="sender" />
                         <field name="subject" />
+                        <field name="date" />
                         <field name="folder_id" />
+                        <field name="origin_mail_id" />
+                    </group>
+                    <group>
+                        <field name="from_text" />
+                        <field name="to_text" />
+                        <field name="cc_text" />
                     </group>
                     <notebook>
                         <page string="body">
@@ -54,6 +58,12 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         </page>
                         <page string="data">
                             <field name="data" />
+                        </page>
+                        <page string="Technical fields">
+                            <group>
+                                <field name="identifier" />
+                                <field name="reply_identifier" />
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
