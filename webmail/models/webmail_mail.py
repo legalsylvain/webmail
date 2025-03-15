@@ -73,7 +73,6 @@ class WebmailMail(models.Model):
 
         identifier = self._get_identifier_from_message(email_message, mail_data)
         message_dict = self.env["mail.thread"].message_parse(email_message)
-        reply_identifier = email_message["In-Reply-To"]
 
         # Check if mail exists in Odoo
         existing_mail = self.search([("identifier", "=", identifier)])
@@ -86,11 +85,11 @@ class WebmailMail(models.Model):
 
         vals = {
             "identifier": identifier,
+            "reply_identifier": email_message["In-Reply-To"],
             "data": data,
             "date_mail": self._get_date_from_message(email_message),
             "folder_id": webmail_folder.id,
-            "reply_identifier": reply_identifier,
-            "subject": self._get_subject_from_message(email_message),
+            "subject": message_dict["subject"],
             "sender": email_message["From"],
             "body": message_dict["body"],
         }
@@ -112,22 +111,6 @@ class WebmailMail(models.Model):
         if not identifier:
             identifier = hashlib.sha256(message_bytes).hexdigest()
         return identifier
-
-    @api.model
-    def _get_subject_from_message(self, email_message):
-        if not email_message["Subject"]:
-            return ""
-        parts = email.header.decode_header(email_message["Subject"])
-        result = []
-        for part in parts:
-            if isinstance(part[0], bytes):
-                if part[1]:
-                    result.append(part[0].decode(part[1]))
-                else:
-                    result.append(part[0].decode())
-            else:
-                result.append(part[0])
-        return "".join(result).replace("\x00", "")
 
     @api.model
     def _get_date_from_message(self, email_message):
