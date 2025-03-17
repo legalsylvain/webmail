@@ -10,8 +10,8 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         <field name="model">webmail.mail</field>
         <field name="arch" type="xml">
             <search>
-                <field name="from_text" />
                 <field name="subject" />
+                <field name="from_text" />
                 <field name="folder_id" />
             </search>
         </field>
@@ -44,11 +44,12 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                     <group>
                         <group>
                             <field name="subject" />
-                            <field name="date" />
+                            <field name="conversation_id" />
                             <field name="folder_id" />
                             <field name="origin_mail_id" />
                         </group>
                         <group>
+                            <field name="date" />
                             <field name="from_text" />
                             <field name="to_text" />
                             <field name="cc_text" />

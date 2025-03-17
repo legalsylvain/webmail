@@ -25,6 +25,13 @@ class WebmailMail(models.Model):
         readonly=True,
     )
 
+    conversation_id = fields.Many2one(
+        compute="_compute_conversation_id",
+        comodel_name="webmail.conversation",
+        store=True,
+        readonly=True,
+    )
+
     user_id = fields.Many2one(
         comodel_name="res.users",
         related="folder_id.user_id",
@@ -62,6 +69,27 @@ class WebmailMail(models.Model):
         for mail in self:
             origin_mail = self.search([("identifier", "=", mail.reply_identifier)])
             mail.origin_mail_id = origin_mail.id
+
+    @api.depends("identifier", "reply_identifier")
+    def _compute_conversation_id(self):
+        for mail in self:
+            other_mails = self.search(
+                [
+                    "|",
+                    ("identifier", "=", mail.reply_identifier),
+                    ("reply_identifier", "=", mail.identifier),
+                ]
+            )
+            if other_mails.mapped("conversation_id"):
+                _logger.info(
+                    f"[ANALYZE] subject: {mail.subject}. Found existing conversation."
+                )
+                mail.conversation_id = other_mails.mapped("conversation_id")[0].id
+            else:
+                _logger.info(
+                    f"[ANALYZE] subject: {mail.subject}. Creating new conversation."
+                )
+                mail.conversation_id = self.env["webmail.conversation"].create({}).id
 
     # Overload Section
     @api.model_create_multi
